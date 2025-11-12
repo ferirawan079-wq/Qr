@@ -1,0 +1,159 @@
+<!doctype html>
+
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FeryyDevv QR Code Generator — Colorful</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--accent1:#6b21a8;--accent2:#5b8df7;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:#f7f9fc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;color:#0b1220}
+    .card{width:100%;max-width:760px;background:white;border-radius:16px;box-shadow:0 12px 30px rgba(11,18,32,0.06);overflow:hidden}
+    .hero{padding:24px 28px;background:linear-gradient(90deg,var(--accent2),var(--accent1));color:white}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 0;opacity:0.95;font-size:13px}
+    .content{padding:20px}
+    label{display:block;font-size:13px;margin-bottom:8px;color:var(--muted)}
+    input[type=text], input[type=range], select, input[type=color]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,18,32,0.06);background:transparent}
+    .controls{display:grid;grid-template-columns:1fr 180px;gap:12px;align-items:end}
+    .range-wrap{margin-top:12px;display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+    .row{display:flex;gap:10px;margin-top:16px}
+    .btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));border:none;padding:12px 16px;border-radius:10px;color:white;font-weight:600;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(11,18,32,0.06);color:var(--muted)}
+    #qwrap{display:flex;align-items:center;justify-content:center;padding:20px}
+    #qbox{background:white;padding:18px;border-radius:12px;border:1px solid rgba(11,18,32,0.04)}
+    #info{margin-top:10px;font-size:13px;color:var(--muted);text-align:center}/* RGB animated download button */
+.rgb-btn{position:relative;overflow:hidden;border-radius:10px;padding:0}
+.rgb-btn button{position:relative;z-index:2}
+.rgb-bg{position:absolute;inset:0;background:linear-gradient(270deg,#ff004c,#00ffd5,#004bff,#ff00c8);background-size:600% 600%;animation:rgbShift 6s linear infinite;filter:brightness(0.95);z-index:1}
+@keyframes rgbShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+@media (max-width:640px){.controls{grid-template-columns:1fr}.row{flex-direction:column}.hero{padding:18px}.content{padding:16px}}
+
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="hero">
+      <h1>FeryyDevv QR Code Generator</h1>
+      <p class="lead">Masukkan link, pilih ukuran & background, pilih model QR — Generate & Download.</p>
+    </div><div class="content">
+  <div class="controls">
+    <div>
+      <label for="link">Link Website</label>
+      <input id="link" type="text" placeholder="https://example.com">
+
+      <div class="range-wrap" style="margin-top:10px">
+        <label for="size">Ukuran QR</label>
+        <span id="sizeValue">200 px</span>
+      </div>
+      <input id="size" type="range" min="100" max="600" value="200">
+
+      <div style="height:12px"></div>
+
+      <label for="bgColor">Warna Background QR</label>
+      <input id="bgColor" type="color" value="#ffffff">
+
+      <div style="height:12px"></div>
+
+      <label for="model">Model QR</label>
+      <select id="model">
+        <option value="square">Kotak klasik</option>
+        <option value="dots">Titik-titik</option>
+        <option value="rounded">Garis (rounded)</option>
+      </select>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <label style="opacity:0">spacer</label>
+      <button id="gen" class="btn">Generate QR</button>
+      <button id="reset" class="btn ghost">Reset</button>
+
+      <div style="flex:1;display:flex;align-items:center;justify-content:center">
+        <div class="rgb-btn" style="width:100%">
+          <div class="rgb-bg" aria-hidden="true"></div>
+          <button id="download" class="btn" style="width:100%;background:transparent;border:none;color:white;font-weight:700">Download PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="qwrap">
+    <div id="qbox">
+      <div id="qrcode" style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:var(--muted)">Hasil QR akan muncul di sini</div>
+    </div>
+  </div>
+
+  <div id="info">—</div>
+</div>
+
+  </div>  <!-- QR Code Styling library (uses modern API to customize dots/background) -->  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>  <script>
+    const $ = id => document.getElementById(id);
+    const link = $('link');
+    const gen = $('gen');
+    const reset = $('reset');
+    const qrcodeEl = $('qrcode');
+    const download = $('download');
+    const info = $('info');
+    const size = $('size');
+    const sizeValue = $('sizeValue');
+    const bgColor = $('bgColor');
+    const model = $('model');
+
+    let qr = null;
+
+    size.addEventListener('input', ()=> sizeValue.textContent = `${size.value} px`);
+
+    function clearQR(){ qrcodeEl.innerHTML = 'Hasil QR akan muncul di sini'; info.textContent = '—'; qr = null; }
+
+    function createQRCode({data, width, bg, dotsStyle}){
+      // remove previous
+      qrcodeEl.innerHTML = '';
+      // QRCodeStyling expects a container element
+      const qrOptions = {
+        width: width,
+        height: width,
+        data: data,
+        image: undefined,
+        dotsOptions: {
+          color: '#000000',
+          type: dotsStyle // 'square' | 'dots' | 'rounded'
+        },
+        backgroundOptions: {
+          color: bg
+        }
+      };
+      qr = new QRCodeStyling(qrOptions);
+      qr.append(qrcodeEl);
+    }
+
+    function generate(){
+      const url = link.value.trim();
+      if(!url){ alert('Masukkan link terlebih dahulu.'); return; }
+      const w = parseInt(size.value,10);
+      const bg = bgColor.value || '#ffffff';
+      const modelVal = model.value;
+      // map to library types
+      let dotsType = 'square';
+      if(modelVal === 'dots') dotsType = 'dots';
+      if(modelVal === 'rounded') dotsType = 'rounded';
+
+      createQRCode({data: url, width: w, bg: bg, dotsStyle: dotsType});
+      info.textContent = `${url} • ${w}px • background ${bg} • model ${modelVal}`;
+    }
+
+    download.addEventListener('click', ()=>{
+      if(!qr){ alert('Belum ada QR untuk diunduh.'); return; }
+      // use library's download method
+      qr.download({name: 'feryydevv-qr', extension: 'png'});
+    });
+
+    gen.addEventListener('click', generate);
+    reset.addEventListener('click', ()=>{ link.value=''; size.value=200; sizeValue.textContent='200 px'; bgColor.value='#ffffff'; model.value='square'; clearQR(); });
+    link.addEventListener('keydown', (e)=>{ if(e.key==='Enter') generate(); });
+
+    window.addEventListener('load', ()=>{ sizeValue.textContent = size.value + ' px'; clearQR(); });
+  </script></body>
+</html>
